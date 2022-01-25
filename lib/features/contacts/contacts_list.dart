@@ -1,6 +1,7 @@
 import 'package:bytebank/database/dao/contact_dao.dart';
 import 'package:bytebank/features/contact_form/contact_form.dart';
-import 'package:bytebank/model/contact_model.dart';
+import 'package:bytebank/features/transaction_form/transaction_form.dart';
+import 'package:bytebank/model/contact.dart';
 import 'package:flutter/material.dart';
 
 class ContactsList extends StatelessWidget {
@@ -14,8 +15,7 @@ class ContactsList extends StatelessWidget {
       ),
       body: FutureBuilder<List<Contact>>(
         initialData: const [],
-        future: Future.delayed(Duration(seconds: 2))
-            .then((value) => _dao.findAll()),
+        future: _dao.findAll(),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -29,7 +29,12 @@ class ContactsList extends StatelessWidget {
               return ListView.builder(
                 itemBuilder: (context, index) {
                   final Contact contact = contacts[index];
-                  return _ContactItem(contact: contact);
+                  return _ContactItem(
+                    contact: contact,
+                    onClick: () => {
+                      _showTransactionForm(context, contact),
+                    },
+                  );
                 },
                 itemCount: contacts.length,
               );
@@ -49,16 +54,26 @@ class ContactsList extends StatelessWidget {
       ),
     );
   }
+
+  void _showTransactionForm(BuildContext context, Contact contact) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TransactionForm(contact),
+      ),
+    );
+  }
 }
 
 class _ContactItem extends StatelessWidget {
   final Contact contact;
+  final Function onClick;
 
-  const _ContactItem({Key? key, required this.contact}) : super(key: key);
+  const _ContactItem({required this.contact, required this.onClick});
   @override
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
+        onTap: () => onClick(),
         title: Text(
           contact.name,
           style: const TextStyle(fontSize: 24.0),
