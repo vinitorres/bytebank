@@ -17,11 +17,11 @@ class TransactionWebClient {
         .toList();
   }
 
-  Future<Transaction> save(Transaction transaction) async {
+  Future<Transaction?> save(Transaction transaction, String password) async {
     final Uri uri = Uri.http(_baseUrl, _transactionsUrl);
     final Map<String, String> headers = {
       'Content-Type': 'application/json',
-      'password': '1000'
+      'password': password
     };
 
     final response = await client.post(
@@ -30,7 +30,25 @@ class TransactionWebClient {
       body: jsonEncode(transaction.toJson()),
     );
 
-    final responseJson = jsonDecode(response.body);
-    return Transaction.fromJson(responseJson);
+    if (response.statusCode == 200) {
+      return Transaction.fromJson(jsonDecode(response.body));
+    }
+
+    const String unmapError = 'Erro desconhecido';
+
+    throw HttpException(
+        _statusCodeResponses[response.statusCode] ?? unmapError);
   }
+
+  static final Map<int, String> _statusCodeResponses = {
+    400: 'Valor da transação indeterminado',
+    401: 'Senha incorreta',
+    409: 'transaction already exists',
+  };
+}
+
+class HttpException implements Exception {
+  final String message;
+
+  HttpException(this.message);
 }

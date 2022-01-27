@@ -1,7 +1,13 @@
+import 'dart:async';
+
+import 'package:bytebank/components/failure_dialog.dart';
+import 'package:bytebank/components/success_dialog.dart';
+import 'package:bytebank/components/transaction_auth_dialog.dart';
 import 'package:bytebank/http/webclients/transaction_webclient.dart';
 import 'package:bytebank/model/contact.dart';
 import 'package:bytebank/model/transaction.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class TransactionForm extends StatefulWidget {
   final Contact contact;
@@ -15,6 +21,7 @@ class TransactionForm extends StatefulWidget {
 class _TransactionFormState extends State<TransactionForm> {
   final TextEditingController _valueController = TextEditingController();
   final TransactionWebClient transactionWebClient = TransactionWebClient();
+  final String transactionId = Uuid().v4();
 
   @override
   Widget build(BuildContext context) {
@@ -63,13 +70,16 @@ class _TransactionFormState extends State<TransactionForm> {
                       final double value =
                           double.tryParse(_valueController.text) ?? 0;
                       final transactionCreated =
-                          Transaction(value, widget.contact);
-                      transactionWebClient
-                          .save(transactionCreated)
-                          .then((transaction) {
-                        Navigator.pop(context);
-                      });
-                      ;
+                          Transaction(transactionId, value, widget.contact);
+                      showDialog(
+                          context: context,
+                          builder: (contextDialog) {
+                            return TransactionAuthDialog(
+                              onConfirm: (String password) {
+                                _save(transactionCreated, password, context);
+                              },
+                            );
+                          });
                     },
                   ),
                 ),
@@ -79,5 +89,40 @@ class _TransactionFormState extends State<TransactionForm> {
         ),
       ),
     );
+  }
+
+  void _save(
+    Transaction transactionCreated,
+    String password,
+    BuildContext context,
+  ) async {
+    final Transaction? transaction = await transactionWebClient
+        .save(transactionCreated, password)
+        .catchError((e) {
+      _showErrorDialog(context, e);
+    }, test: (e) => e is TimeoutException).catchError((e) {
+      _showErrorDialog(context, e);
+    }, test: (e) => e is HttpException);
+
+    if (transaction != null) {
+      await _showSuccessDialog(context);
+      Navigator.pop(context);
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, e) {
+    showDialog(
+        context: context,
+        builder: (contextDialog) {
+          return FailureDialog(e.message);
+        });
+  }
+
+  Future<void> _showSuccessDialog(BuildContext context) async {
+    await showDialog(
+        context: context,
+        builder: (contextDialog) {
+          return SuccessDialog('sucesso!');
+        });
   }
 }
