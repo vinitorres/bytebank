@@ -1,15 +1,19 @@
-import 'package:bytebank/http/webclient.dart';
+import 'package:bytebank/model/balance.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'features/dashboard/dashboard.dart';
 
 void main() {
-  runApp(const BytebankApp());
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider<Balance>(create: (_) => Balance(0)),
+    ],
+    child: Dashboard(),
+  ));
 }
 
 class BytebankApp extends StatelessWidget {
-  const BytebankApp({Key? key}) : super(key: key);
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {

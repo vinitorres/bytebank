@@ -69,7 +69,6 @@ class _TransactionFormState extends State<TransactionForm> {
                           .then((transaction) {
                         Navigator.pop(context);
                       });
-                      ;
                     },
                   ),
                 ),
