@@ -7,9 +7,9 @@ import 'features/dashboard/dashboard.dart';
 void main() {
   runApp(MultiProvider(
     providers: [
-      ChangeNotifierProvider<Balance>(create: (_) => Balance(0)),
+      ChangeNotifierProvider<Balance>(create: (context) => Balance(0)),
     ],
-    child: Dashboard(),
+    child: BytebankApp(),
   ));
 }
 

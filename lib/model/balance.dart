@@ -1,6 +1,7 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class Balance extends ChangeNotifier {
+class Balance with ChangeNotifier {
   double current;
 
   Balance(this.current);
